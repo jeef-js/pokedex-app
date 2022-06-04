@@ -1,0 +1,1 @@
+A simple pokédex project using HTML, CSS and JavaScript.
