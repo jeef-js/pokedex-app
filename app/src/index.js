@@ -25,6 +25,7 @@
 //         content.innerHTML += pokemonCard;
 //     });
 // }
+
 // Using fetch API
 const main = document.querySelector('main');
 getPokemons();
@@ -36,10 +37,7 @@ async function getPokemons() {
     const data = await response.json();
     const pokemons = data.results;
 
-    const content = document.createElement('div');
     const cards = document.createElement('div');
-
-    content.setAttribute('class', 'content');
     cards.setAttribute('class', 'cards');
 
     pokemons.forEach(async (pokemon) => {
@@ -64,6 +62,21 @@ async function getPokemons() {
         `;
         cards.innerHTML += pokemonCard;
     });
-    content.appendChild(cards);
-    main.appendChild(content);
+    main.appendChild(cards);
+
+    const pokemonImages = document.querySelectorAll('.pokemon-id img');
+
+    pokemonImages.forEach(async (img) => {
+        img.addEventListener('load', async () => {
+            const vibrant = new Vibrant(img);
+            const swatches = await vibrant.swatches();
+            const pallete = []
+            for (swatch in swatches) {
+                if (swatches[swatch] && swatches.hasOwnProperty(swatch)) {
+                    pallete.push(swatches[swatch].getHex());
+                }
+            }
+            console.log(pallete);
+        });
+    });
 }
