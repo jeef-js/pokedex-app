@@ -27,56 +27,92 @@
 // }
 
 // Using fetch API
-const main = document.querySelector('main');
+const cards = document.querySelector('.cards');
 getPokemons();
 
 async function getPokemons() {
-    const url = 'https://pokeapi.co/api/v2/pokemon?limit=20&offset=0';
+    const url = 'https://pokeapi.co/api/v2/pokemon?limit=30&offset=0';
     const response = await fetch(url);
 
     const data = await response.json();
     const pokemons = data.results;
 
-    const cards = document.createElement('div');
-    cards.setAttribute('class', 'cards');
+    pokemons.forEach(async pokemon => {
+        const url = pokemon.url;
 
-    pokemons.forEach(async (pokemon) => {
-        const pokemonName = pokemon.name;
-        const pokemonUrl = pokemon.url;
-        const pokemonId = pokemonUrl.split('/')[6];
+        const response = await fetch(url);
+        const data = await response.json();
 
-        const pokemonImage = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemonId}.png`;
-        const pokemonCard = `
-            <div class="pokemon-card">
-                <div class="pokemon-id">
-                    <img src="../images/pokeball.svg" alt="${pokemonId}">
-                    <h2>#${pokemonId.padStart(3, '0')}</h2>
+        const name = data.name[0].toUpperCase() + data.name.slice(1);
+        const id = data.id;
+        const hp = data.stats[0].base_stat;
+        const height = data.height/10; // convert to meters
+        const weight = data.weight/10; // convert to kilograms
+        const types = data.types;
+        const image = data.sprites.other['official-artwork'].front_default;
+
+        const pokemonCard = document.createElement('div');
+        pokemonCard.classList.add('pokemon-card');
+
+        const pokemonInfo = document.createElement('div');
+        pokemonInfo.classList.add('pokemon-info');
+
+
+        pokemonInfo.innerHTML += `
+            <div class="title">
+                <h1>${name}</h1>
+                <h2><span>#</span>${String(id).padStart(3,'0')}</h2>
+            </div>
+        `;
+
+        const infos = document.createElement('div');
+
+        const statsList = document.createElement('div');
+        statsList.classList.add('attributes');
+        statsList.id = 'stats';
+        statsList.innerHTML += `
+            <div class="attributes" id="stats">
+                <div class="attribute-item">
+                    <h3><span>HP&nbsp;</span>${hp}</h3>
                 </div>
-                <div class="pokemon-image">
-                    <img src="${pokemonImage}" alt="${pokemonName}">
+                <div class="attribute-item">
+                    <h3><span>W&nbsp;</span>${weight} kg</h3>
                 </div>
-                <div class="pokemon-name">
-                    <h2>${pokemonName}</h2>
+                <div class="attribute-item">
+                    <h3><span>H&nbsp;</span>${height} m</h3>
                 </div>
             </div>
         `;
-        cards.innerHTML += pokemonCard;
-    });
-    main.appendChild(cards);
 
-    const pokemonImages = document.querySelectorAll('.pokemon-id img');
+        const typesList = document.createElement('div');
+        typesList.classList.add('attributes');
+        typesList.id = 'types';
 
-    pokemonImages.forEach(async (img) => {
-        img.addEventListener('load', async () => {
-            const vibrant = new Vibrant(img);
-            const swatches = await vibrant.swatches();
-            const pallete = []
-            for (swatch in swatches) {
-                if (swatches[swatch] && swatches.hasOwnProperty(swatch)) {
-                    pallete.push(swatches[swatch].getHex());
-                }
-            }
-            console.log(pallete);
-        });
+        for(item of types) {
+            const type = item.type.name;
+            
+            typesList.innerHTML += `
+                <div class="attribute-item ${type}">
+                    <h3>${type}</h3>
+                </div>
+            `;
+        };
+
+        infos.appendChild(statsList);
+        infos.appendChild(typesList);
+        pokemonInfo.appendChild(infos);
+        pokemonCard.appendChild(pokemonInfo);
+
+        const pokemonImage = document.createElement('div');
+        pokemonImage.classList.add('pokemon-img');
+
+        pokemonImage.innerHTML += `
+            <a href="https://www.pokemon.com/br/pokedex/${name}" target="_blank">
+                <img src="${image}" alt="wartortle">
+            </a>
+        `;
+
+        pokemonCard.appendChild(pokemonImage);
+        cards.appendChild(pokemonCard);
     });
 }
