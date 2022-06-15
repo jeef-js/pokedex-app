@@ -1,43 +1,20 @@
-// // Using XMLHttpRequest
-// const content = document.querySelector('.content');
-// const url = 'https://pokeapi.co/api/v2/generation/1';
-// const xhr = new XMLHttpRequest();
-// xhr.open('GET', url);
-// xhr.send();
-// xhr.onload = function() {
-//     const data = JSON.parse(xhr.responseText);
-//     const pokemon = data.pokemon_species;
-//     pokemon.forEach(function(pokemon) {
-//         const pokemonName = pokemon.name;
-//         const pokemonUrl = pokemon.url;
-//         const pokemonId = pokemonUrl.split('/')[6];
-//         const pokemonImage = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemonId}.png`;
-//         const pokemonCard = `
-//             <div class="pokemon-card">
-//                 <div class="pokemon-image">
-//                     <img src="${pokemonImage}" alt="${pokemonName}">
-//                 </div>
-//                 <div class="pokemon-name">
-//                     <h2>${pokemonName}</h2>
-//                 </div>
-//             </div>
-//         `;
-//         content.innerHTML += pokemonCard;
-//     });
-// }
-
 // Using fetch API
 const cards = document.querySelector('.cards');
-getPokemons();
 
-async function getPokemons() {
-    const url = 'https://pokeapi.co/api/v2/pokemon?limit=30&offset=0';
+showContent('https://pokeapi.co/api/v2/pokemon/?offset=0&limit=12');
+
+async function getContent(url) {
     const response = await fetch(url);
-
     const data = await response.json();
-    const pokemons = data.results;
 
-    pokemons.forEach(async pokemon => {
+    return data;
+}
+
+async function showContent(url) {
+    const pokemons = await getContent(url);
+    const nextList = pokemons.next;
+
+    pokemons.results.forEach(async pokemon => {
         const url = pokemon.url;
 
         const response = await fetch(url);
@@ -50,6 +27,7 @@ async function getPokemons() {
         const weight = data.weight/10; // convert to kilograms
         const types = data.types;
         const image = data.sprites.other['official-artwork'].front_default;
+        // const image = data.sprites.front_default;
 
         const pokemonCard = document.createElement('div');
         pokemonCard.classList.add('pokemon-card');
@@ -71,7 +49,6 @@ async function getPokemons() {
         statsList.classList.add('attributes');
         statsList.id = 'stats';
         statsList.innerHTML += `
-            <div class="attributes" id="stats">
                 <div class="attribute-item">
                     <h3><span>HP&nbsp;</span>${hp}</h3>
                 </div>
@@ -81,7 +58,6 @@ async function getPokemons() {
                 <div class="attribute-item">
                     <h3><span>H&nbsp;</span>${height} m</h3>
                 </div>
-            </div>
         `;
 
         const typesList = document.createElement('div');
@@ -93,7 +69,7 @@ async function getPokemons() {
             
             typesList.innerHTML += `
                 <div class="attribute-item ${type}">
-                    <h3>${type}</h3>
+                    <h3>${type[0].toUpperCase() + type.slice(1)}</h3>
                 </div>
             `;
         };
@@ -106,13 +82,13 @@ async function getPokemons() {
         const pokemonImage = document.createElement('div');
         pokemonImage.classList.add('pokemon-img');
 
-        pokemonImage.innerHTML += `
-            <a href="https://www.pokemon.com/br/pokedex/${name}" target="_blank">
-                <img src="${image}" alt="wartortle">
-            </a>
-        `;
+        const img = trimImage(image);
+
+        pokemonImage.appendChild(img);
 
         pokemonCard.appendChild(pokemonImage);
         cards.appendChild(pokemonCard);
     });
+    
+    document.querySelector('button').setAttribute('onclick', `showContent('${nextList}')`);
 }
